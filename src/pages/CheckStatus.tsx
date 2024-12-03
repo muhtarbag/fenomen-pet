@@ -91,7 +91,6 @@ const CheckStatus = () => {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="@kullaniciadi"
                 className="w-full"
                 autoComplete="off"
               />
