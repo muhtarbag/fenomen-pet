@@ -29,7 +29,10 @@ export const StatusBadge = ({ status }: StatusBadgeProps) => {
       );
     case 'rejected':
       return (
-        <Badge variant="destructive" className="flex items-center gap-1">
+        <Badge 
+          variant="destructive" 
+          className="flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white"
+        >
           <XCircle className="w-4 h-4" />
           Reddedildi
         </Badge>
