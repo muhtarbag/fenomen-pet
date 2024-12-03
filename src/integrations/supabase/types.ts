@@ -245,6 +245,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_ip_like_cooldown: {
+        Args: {
+          p_ip_address: string
+        }
+        Returns: boolean
+      }
       check_submission_cooldown: {
         Args: {
           p_username: string

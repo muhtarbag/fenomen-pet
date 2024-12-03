@@ -64,52 +64,34 @@ export const useLike = (postId: number, initialLikes: number, isPlaceholder: boo
           .then(response => response.json())
           .then(data => data.ip);
 
-        const { data: existingLike, error: checkError } = await supabase
-          .from('anonymous_likes')
-          .select()
-          .eq('submission_id', postId)
-          .eq('ip_address', clientIp)
-          .maybeSingle();
+        try {
+          const { error: insertError } = await supabase
+            .from('anonymous_likes')
+            .insert({
+              submission_id: postId,
+              ip_address: clientIp
+            });
 
-        if (checkError) throw checkError;
+          if (insertError) {
+            if (insertError.message.includes('24 saat içinde')) {
+              toast.error("24 saat içinde tekrar beğeni yapamazsınız.");
+              return;
+            }
+            throw insertError;
+          }
 
-        if (existingLike) {
-          toast.error("Bu gönderiyi daha önce beğenmişsiniz.");
-          setIsProcessing(false);
-          return;
+          likedPosts.push(postId);
+          localStorage.setItem('likedPosts', JSON.stringify(likedPosts));
+          setIsLiked(true);
+          setLikeCount(prev => prev + 1);
+          toast.success("Beğeni kaydedildi!");
+        } catch (error: any) {
+          if (error.message.includes('24 saat içinde')) {
+            toast.error("24 saat içinde tekrar beğeni yapamazsınız.");
+          } else {
+            throw error;
+          }
         }
-
-        // Anonim beğeni ekleme
-        const { error: insertError } = await supabase
-          .from('anonymous_likes')
-          .insert({
-            submission_id: postId,
-            ip_address: clientIp
-          });
-
-        if (insertError) throw insertError;
-
-        // Gönderi beğeni sayısını güncelleme
-        const { data: submission, error: submissionError } = await supabase
-          .from('submissions')
-          .select('likes')
-          .eq('id', postId)
-          .single();
-
-        if (submissionError) throw submissionError;
-
-        const { error: updateError } = await supabase
-          .from('submissions')
-          .update({ likes: (submission.likes || 0) + 1 })
-          .eq('id', postId);
-
-        if (updateError) throw updateError;
-
-        likedPosts.push(postId);
-        localStorage.setItem('likedPosts', JSON.stringify(likedPosts));
-        setIsLiked(true);
-        setLikeCount(prev => prev + 1);
-        toast.success("Beğeni kaydedildi!");
       } else {
         // Oturum açmış kullanıcılar için beğeni işlemi
         if (isLiked) {
