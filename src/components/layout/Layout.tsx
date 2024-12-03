@@ -10,6 +10,7 @@ interface LayoutProps {
 
 export const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -32,8 +33,12 @@ export const Layout = ({ children }: LayoutProps) => {
       <main className="flex-grow pt-16 w-full max-w-[100vw] overflow-x-hidden">
         {children}
       </main>
-      <Footer />
-      <LiveChat />
+      {!isAdminRoute && (
+        <>
+          <Footer />
+          <LiveChat />
+        </>
+      )}
     </div>
   );
 };

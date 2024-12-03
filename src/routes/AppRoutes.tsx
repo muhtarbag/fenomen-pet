@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -14,46 +14,55 @@ export const AppRoutes = () => {
 
   return (
     <Routes>
-      <Route
-        path="/"
-        element={
-          <Suspense fallback={<div>Yükleniyor...</div>}>
-            <Index />
-          </Suspense>
-        }
-      />
-      <Route
-        path="/submit"
-        element={
-          <Suspense fallback={<div>Yükleniyor...</div>}>
-            <Submit />
-          </Suspense>
-        }
-      />
-      <Route
-        path="/blog"
-        element={
-          <Suspense fallback={<div>Yükleniyor...</div>}>
-            <Blog />
-          </Suspense>
-        }
-      />
-      <Route
-        path="/admin"
-        element={
-          <Suspense fallback={<div>Yükleniyor...</div>}>
-            {isAuthenticated ? <Admin /> : <Login />}
-          </Suspense>
-        }
-      />
-      <Route
-        path="/check-status"
-        element={
-          <Suspense fallback={<div>Yükleniyor...</div>}>
-            <CheckStatus />
-          </Suspense>
-        }
-      />
+      <Route path="/" element={
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>}>
+          <Index />
+        </Suspense>
+      } />
+      
+      <Route path="/submit" element={
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>}>
+          <Submit />
+        </Suspense>
+      } />
+      
+      <Route path="/blog" element={
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>}>
+          <Blog />
+        </Suspense>
+      } />
+      
+      <Route path="/admin" element={
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>}>
+          {isAuthenticated ? <Admin /> : <Navigate to="/login" replace />}
+        </Suspense>
+      } />
+      
+      <Route path="/login" element={
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>}>
+          {isAuthenticated ? <Navigate to="/admin" replace /> : <Login />}
+        </Suspense>
+      } />
+      
+      <Route path="/check-status" element={
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>}>
+          <CheckStatus />
+        </Suspense>
+      } />
+
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 };
