@@ -27,6 +27,7 @@ export const useLike = (postId: number, initialLikes: number, isPlaceholder: boo
         
         setIsLiked(!!data);
       } else {
+        // Yerel depolama kontrolü
         const likedPosts = JSON.parse(localStorage.getItem('likedPosts') || '[]');
         setIsLiked(likedPosts.includes(postId));
       }
@@ -49,6 +50,7 @@ export const useLike = (postId: number, initialLikes: number, isPlaceholder: boo
       const { data: session } = await supabase.auth.getSession();
       
       if (!session?.session?.user) {
+        // Oturum açmamış kullanıcılar için yerel depolama kontrolü
         const likedPosts = JSON.parse(localStorage.getItem('likedPosts') || '[]');
         
         if (likedPosts.includes(postId)) {
@@ -57,17 +59,44 @@ export const useLike = (postId: number, initialLikes: number, isPlaceholder: boo
           return;
         }
 
+        // IP tabanlı kontrol ekleyebiliriz
+        const clientIp = await fetch('https://api.ipify.org?format=json')
+          .then(response => response.json())
+          .then(data => data.ip);
+
+        const { data: existingLike, error: checkError } = await supabase
+          .from('anonymous_likes')
+          .select('*')
+          .eq('submission_id', postId)
+          .eq('ip_address', clientIp)
+          .maybeSingle();
+
+        if (checkError) throw checkError;
+
+        if (existingLike) {
+          toast.error("Bu gönderiyi daha önce beğenmişsiniz.");
+          setIsProcessing(false);
+          return;
+        }
+
+        // Anonim beğeni ekleme
+        const { error: insertError } = await supabase
+          .from('anonymous_likes')
+          .insert([{ 
+            submission_id: postId,
+            ip_address: clientIp
+          }]);
+
+        if (insertError) throw insertError;
+
+        // Gönderi beğeni sayısını güncelleme
         const { data: submission, error: submissionError } = await supabase
           .from('submissions')
           .select('likes')
           .eq('id', postId)
           .single();
 
-        if (submissionError) {
-          toast.error("Bu gönderi artık mevcut değil.");
-          setIsProcessing(false);
-          return;
-        }
+        if (submissionError) throw submissionError;
 
         const { error: updateError } = await supabase
           .from('submissions')
@@ -82,6 +111,7 @@ export const useLike = (postId: number, initialLikes: number, isPlaceholder: boo
         setLikeCount(prev => prev + 1);
         toast.success("Beğeni kaydedildi!");
       } else {
+        // Oturum açmış kullanıcılar için beğeni işlemi
         if (isLiked) {
           const { error } = await supabase
             .from('submission_likes')
@@ -120,7 +150,7 @@ export const useLike = (postId: number, initialLikes: number, isPlaceholder: boo
       console.error('Like error:', error);
       toast.error("Bir hata oluştu. Lütfen tekrar deneyin.");
       
-      // Revert optimistic update
+      // Optimistic update'i geri al
       if (isLiked) {
         setLikeCount(prev => prev + 1);
         setIsLiked(true);
