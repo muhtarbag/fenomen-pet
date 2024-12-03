@@ -59,14 +59,14 @@ export const useLike = (postId: number, initialLikes: number, isPlaceholder: boo
           return;
         }
 
-        // IP tabanlı kontrol ekleyebiliriz
+        // IP tabanlı kontrol
         const clientIp = await fetch('https://api.ipify.org?format=json')
           .then(response => response.json())
           .then(data => data.ip);
 
         const { data: existingLike, error: checkError } = await supabase
           .from('anonymous_likes')
-          .select('*')
+          .select()
           .eq('submission_id', postId)
           .eq('ip_address', clientIp)
           .maybeSingle();
@@ -82,10 +82,10 @@ export const useLike = (postId: number, initialLikes: number, isPlaceholder: boo
         // Anonim beğeni ekleme
         const { error: insertError } = await supabase
           .from('anonymous_likes')
-          .insert([{ 
+          .insert({
             submission_id: postId,
             ip_address: clientIp
-          }]);
+          });
 
         if (insertError) throw insertError;
 
@@ -127,10 +127,10 @@ export const useLike = (postId: number, initialLikes: number, isPlaceholder: boo
         } else {
           const { error } = await supabase
             .from('submission_likes')
-            .insert([{ 
+            .insert({ 
               submission_id: postId,
               user_id: session.session.user.id
-            }]);
+            });
 
           if (error) {
             if (error.code === '23505') {

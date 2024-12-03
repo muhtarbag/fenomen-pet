@@ -39,6 +39,35 @@ export type Database = {
         }
         Relationships: []
       }
+      anonymous_likes: {
+        Row: {
+          created_at: string
+          id: number
+          ip_address: string
+          submission_id: number
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          ip_address: string
+          submission_id: number
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          ip_address?: string
+          submission_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anonymous_likes_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blog_posts: {
         Row: {
           content: string
